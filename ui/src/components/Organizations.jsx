@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Building2 } from 'lucide-react';
 
 export default function Organizations({ token, currentUser }) {

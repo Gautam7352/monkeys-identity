@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Play, Pause, Lock, Eye, Key, User as UserIcon, Shield, Smartphone, Globe, Clock, LayoutGrid, List } from 'lucide-react';
 
 export default function Users({ token, currentUser }) {

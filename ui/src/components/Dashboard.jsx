@@ -1,3 +1,4 @@
+import React from 'react';
 import { Users, Building2, ShieldCheck, Activity } from 'lucide-react';
 
 export default function Dashboard({ onViewChange, user }) {

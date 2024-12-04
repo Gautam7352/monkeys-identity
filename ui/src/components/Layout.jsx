@@ -1,3 +1,4 @@
+import React from 'react';
 import { LayoutDashboard, Users, Building2, Settings, LogOut, Code, Shield } from 'lucide-react';
 
 export default function Layout({ children, currentView, onViewChange, onLogout, user }) {
@@ -31,8 +32,8 @@ export default function Layout({ children, currentView, onViewChange, onLogout, 
                                 key={item.id}
                                 onClick={() => onViewChange(item.id)}
                                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${isActive
-                                        ? 'bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-white border border-indigo-500/20 shadow-sm'
-                                        : 'text-muted hover:bg-white/5 hover:text-white'
+                                    ? 'bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-white border border-indigo-500/20 shadow-sm'
+                                    : 'text-muted hover:bg-white/5 hover:text-white'
                                     }`}
                             >
                                 <Icon size={20} className={isActive ? 'text-indigo-400' : 'text-gray-500'} />

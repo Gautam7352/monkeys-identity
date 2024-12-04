@@ -1,3 +1,4 @@
+import React from 'react';
 import '../styles/OrganizationCard.css';
 
 const OrganizationCard = ({ organization, onView, onEdit, onDelete }) => {

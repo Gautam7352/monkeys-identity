@@ -1,3 +1,4 @@
+import React from 'react';
 import { Construction } from 'lucide-react';
 
 export default function Settings() {

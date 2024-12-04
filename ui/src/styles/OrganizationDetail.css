@@ -91,6 +91,7 @@
 .info-grid div {
     color: rgba(255, 255, 255, 0.8);
     font-size: 14px;
+    line-height: 1.4;
 }
 
 .info-grid strong {
@@ -100,6 +101,21 @@
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+.json-preview {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    color: #e2e8f0;
+    font-family: 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+    font-size: 12px;
+    margin: 0;
+    max-height: 320px;
+    overflow: auto;
+    padding: 16px;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .badge {
@@ -162,4 +178,62 @@
     color: rgba(255, 255, 255, 0.5);
     padding: 40px;
     font-size: 14px;
+}
+
+.empty-note {
+    margin: 0 0 16px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+}
+
+.paragraph-text {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+}
+
+.key-value-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.key-value-grid div {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.key-value-grid span {
+    display: block;
+    margin-top: 4px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.error-state {
+    align-items: center;
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    justify-content: center;
+    min-height: 320px;
+    padding: 32px;
+    text-align: center;
+}
+
+.error-state h2 {
+    color: white;
+    margin: 0;
+}
+
+.error-state p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.6);
 }

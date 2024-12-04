@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/OrganizationModal.css';
 
 const OrganizationModal = ({ organization, onClose, onSave }) => {
