@@ -424,10 +424,25 @@ func (h *OrganizationHandler) UpdateOrganizationSettings(c *fiber.Ctx) error {
 //	@Tags         System Administration
 //	@Produce      json
 //	@Success      200  {object}  SuccessResponse  "Global settings retrieved"
+//	@Failure      500  {object}  ErrorResponse    "Internal server error"
 //	@Security     BearerAuth
 //	@Router       /admin/settings [get]
 func (h *OrganizationHandler) GetGlobalSettings(c *fiber.Ctx) error {
-	return c.JSON(SuccessResponse{Status: fiber.StatusOK, Message: "Global settings retrieved", Data: fiber.Map{"settings": fiber.Map{"maintenance_mode": false}}})
+	settings, err := h.queries.GlobalSettings.GetGlobalSettings()
+	if err != nil {
+		h.logger.Error("Failed to get global settings: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+			Status:  fiber.StatusInternalServerError,
+			Error:   "internal_server_error",
+			Message: "Failed to retrieve global settings",
+		})
+	}
+
+	return c.JSON(SuccessResponse{
+		Status:  fiber.StatusOK,
+		Message: "Global settings retrieved successfully",
+		Data:    settings,
+	})
 }
 
 // UpdateGlobalSettings
@@ -437,9 +452,35 @@ func (h *OrganizationHandler) GetGlobalSettings(c *fiber.Ctx) error {
 //	@Tags         System Administration
 //	@Accept       json
 //	@Produce      json
+//	@Param        settings  body  models.GlobalSettings  true  "Global settings to update"
 //	@Success      200  {object}  SuccessResponse  "Global settings updated"
+//	@Failure      400  {object}  ErrorResponse    "Invalid request body"
+//	@Failure      500  {object}  ErrorResponse    "Internal server error"
 //	@Security     BearerAuth
 //	@Router       /admin/settings [put]
 func (h *OrganizationHandler) UpdateGlobalSettings(c *fiber.Ctx) error {
-	return c.JSON(SuccessResponse{Status: fiber.StatusOK, Message: "Global settings updated", Data: fiber.Map{"updated": true}})
+	var settingsUpdate models.GlobalSettings
+	if err := c.BodyParser(&settingsUpdate); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Status:  fiber.StatusBadRequest,
+			Error:   "invalid_request",
+			Message: "Invalid request body",
+		})
+	}
+
+	updatedSettings, err := h.queries.GlobalSettings.UpdateGlobalSettings(settingsUpdate)
+	if err != nil {
+		h.logger.Error("Failed to update global settings: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+			Status:  fiber.StatusInternalServerError,
+			Error:   "internal_server_error",
+			Message: "Failed to update global settings",
+		})
+	}
+
+	return c.JSON(SuccessResponse{
+		Status:  fiber.StatusOK,
+		Message: "Global settings updated successfully",
+		Data:    updatedSettings,
+	})
 }

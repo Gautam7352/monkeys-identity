@@ -680,7 +680,7 @@ func (h *UserHandler) ListServiceAccounts(c *fiber.Ctx) error {
 	// Call query layer
 	result, err := h.queries.User.ListServiceAccounts(params)
 	if err != nil {
-		h.logger.Error("Failed to list service accounts", err)
+		h.logger.Error("Failed to list service accounts: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Status:  fiber.StatusInternalServerError,
 			Error:   "internal_server_error",
@@ -739,7 +739,7 @@ func (h *UserHandler) CreateServiceAccount(c *fiber.Ctx) error {
 	// Call query layer to create service account
 	err := h.queries.User.CreateServiceAccount(&sa)
 	if err != nil {
-		h.logger.Error("Failed to create service account", err)
+		h.logger.Error("Failed to create service account: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Status:  fiber.StatusInternalServerError,
 			Error:   "internal_server_error",
@@ -773,7 +773,7 @@ func (h *UserHandler) GetServiceAccount(c *fiber.Ctx) error {
 	// Call query layer
 	sa, err := h.queries.User.GetServiceAccount(saID)
 	if err != nil {
-		h.logger.Error("Failed to get service account", err)
+		h.logger.Error("Failed to get service account: %v", err)
 		return c.Status(fiber.StatusNotFound).JSON(ErrorResponse{
 			Status:  fiber.StatusNotFound,
 			Error:   "not_found",
@@ -823,7 +823,7 @@ func (h *UserHandler) UpdateServiceAccount(c *fiber.Ctx) error {
 	// Call query layer
 	err := h.queries.User.UpdateServiceAccount(&sa)
 	if err != nil {
-		h.logger.Error("Failed to update service account", err)
+		h.logger.Error("Failed to update service account: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Status:  fiber.StatusInternalServerError,
 			Error:   "internal_server_error",
@@ -857,7 +857,7 @@ func (h *UserHandler) DeleteServiceAccount(c *fiber.Ctx) error {
 	// Call query layer
 	err := h.queries.User.DeleteServiceAccount(saID)
 	if err != nil {
-		h.logger.Error("Failed to delete service account", err)
+		h.logger.Error("Failed to delete service account: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Status:  fiber.StatusInternalServerError,
 			Error:   "internal_server_error",
@@ -913,7 +913,7 @@ func (h *UserHandler) GenerateAPIKey(c *fiber.Ctx) error {
 	// Call query layer
 	err := h.queries.User.GenerateAPIKey(saID, &apiKey)
 	if err != nil {
-		h.logger.Error("Failed to generate API key", err)
+		h.logger.Error("Failed to generate API key: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Status:  fiber.StatusInternalServerError,
 			Error:   "internal_server_error",
@@ -947,7 +947,7 @@ func (h *UserHandler) ListAPIKeys(c *fiber.Ctx) error {
 	// Call query layer
 	keys, err := h.queries.User.ListAPIKeys(saID)
 	if err != nil {
-		h.logger.Error("Failed to list API keys", err)
+		h.logger.Error("Failed to list API keys: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Status:  fiber.StatusInternalServerError,
 			Error:   "internal_server_error",
@@ -983,7 +983,7 @@ func (h *UserHandler) RevokeAPIKey(c *fiber.Ctx) error {
 	// Call query layer
 	err := h.queries.User.RevokeAPIKey(saID, keyID)
 	if err != nil {
-		h.logger.Error("Failed to revoke API key", err)
+		h.logger.Error("Failed to revoke API key: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Status:  fiber.StatusInternalServerError,
 			Error:   "internal_server_error",
@@ -1017,7 +1017,7 @@ func (h *UserHandler) RotateServiceAccountKeys(c *fiber.Ctx) error {
 	// Call query layer
 	err := h.queries.User.RotateServiceAccountKeys(saID)
 	if err != nil {
-		h.logger.Error("Failed to rotate service account keys", err)
+		h.logger.Error("Failed to rotate service account keys: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Status:  fiber.StatusInternalServerError,
 			Error:   "internal_server_error",

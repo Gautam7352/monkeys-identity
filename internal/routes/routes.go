@@ -33,7 +33,10 @@ func SetupRoutes(
 	policyHandler := handlers.NewPolicyHandler(db, redis, logger)
 	roleHandler := handlers.NewRoleHandler(db, redis, logger)
 	sessionHandler := handlers.NewSessionHandler(db, redis, logger)
-	auditHandler := handlers.NewAuditHandler(db, redis, logger)
+
+	// Create queries instance for audit handler
+	queries := queries.New(db, redis)
+	auditHandler := handlers.NewAuditHandler(queries, logger)
 
 	// Public routes (no authentication required)
 	public := api.Group("/public")

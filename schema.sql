@@ -195,6 +195,21 @@ CREATE TABLE policies (
     CONSTRAINT valid_policy_document CHECK (jsonb_typeof(document) = 'object')
 );
 
+-- Policy versions: Track policy document versions and history
+CREATE TABLE policy_versions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    policy_id UUID NOT NULL REFERENCES policies(id) ON DELETE CASCADE,
+    version VARCHAR(10) NOT NULL,
+    document JSONB NOT NULL, -- Policy document for this version
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    status VARCHAR(20) NOT NULL DEFAULT 'draft', -- draft, active, deprecated
+    
+    -- Constraints
+    CONSTRAINT unique_policy_version UNIQUE (policy_id, version),
+    CONSTRAINT valid_version_document CHECK (jsonb_typeof(document) = 'object')
+);
+
 -- Roles: Named collections of policies
 CREATE TABLE roles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -392,6 +407,12 @@ CREATE INDEX idx_policies_status ON policies(status) WHERE status = 'active';
 CREATE INDEX idx_policies_document_gin ON policies USING GIN (document);
 CREATE INDEX idx_policies_effect ON policies(effect);
 CREATE INDEX idx_policies_type ON policies(policy_type);
+
+-- Policy Versions
+CREATE INDEX idx_policy_versions_policy_id ON policy_versions(policy_id);
+CREATE INDEX idx_policy_versions_status ON policy_versions(status);
+CREATE INDEX idx_policy_versions_created_at ON policy_versions(created_at);
+CREATE INDEX idx_policy_versions_document_gin ON policy_versions USING GIN (document);
 
 -- Roles
 CREATE INDEX idx_roles_org_id ON roles(organization_id);

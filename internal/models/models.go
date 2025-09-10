@@ -259,3 +259,21 @@ type AccessReview struct {
 	CreatedAt       time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at" db:"updated_at"`
 }
+
+// GlobalSettings represents system-wide configuration settings
+type GlobalSettings struct {
+	ID                      string    `json:"id" db:"id"`
+	MaintenanceMode         bool      `json:"maintenance_mode" db:"maintenance_mode"`
+	MaintenanceMessage      string    `json:"maintenance_message" db:"maintenance_message"`
+	MaxUsersPerOrganization int       `json:"max_users_per_organization" db:"max_users_per_organization"`
+	MaxSessionDuration      int       `json:"max_session_duration" db:"max_session_duration"` // in minutes
+	PasswordMinLength       int       `json:"password_min_length" db:"password_min_length"`
+	RequireMFA              bool      `json:"require_mfa" db:"require_mfa"`
+	AllowRegistration       bool      `json:"allow_registration" db:"allow_registration"`
+	EmailVerificationReq    bool      `json:"email_verification_required" db:"email_verification_required"`
+	TokenExpirationMinutes  int       `json:"token_expiration_minutes" db:"token_expiration_minutes"`
+	AuditLogRetentionDays   int       `json:"audit_log_retention_days" db:"audit_log_retention_days"`
+	Settings                string    `json:"settings" db:"settings"` // JSONB for additional flexible settings
+	CreatedAt               time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt               time.Time `json:"updated_at" db:"updated_at"`
+}
