@@ -26,7 +26,7 @@ func SetupRoutes(
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(q, redis, logger, cfg)
-	userHandler := handlers.NewUserHandler(db, redis, logger)
+	userHandler := handlers.NewUserHandler(q, logger)
 	organizationHandler := handlers.NewOrganizationHandler(db, redis, logger)
 	groupHandler := handlers.NewGroupHandler(db, redis, logger)
 	resourceHandler := handlers.NewResourceHandler(db, redis, logger)
