@@ -187,13 +187,34 @@ func (q *policyQueries) ListPolicies(params ListParams, organizationID string) (
 
 	var policies []models.Policy
 	for rows.Next() {
-		var p models.Policy
+		var (
+			p          models.Policy
+			createdBy  sql.NullString
+			approvedBy sql.NullString
+			approvedAt sql.NullTime
+			deletedAt  sql.NullTime
+		)
+
 		err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.Version, &p.OrganizationID,
-			&p.Document, &p.PolicyType, &p.Effect, &p.IsSystemPolicy, &p.CreatedBy,
-			&p.ApprovedBy, &p.ApprovedAt, &p.Status, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt)
+			&p.Document, &p.PolicyType, &p.Effect, &p.IsSystemPolicy, &createdBy,
+			&approvedBy, &approvedAt, &p.Status, &p.CreatedAt, &p.UpdatedAt, &deletedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan policy: %w", err)
 		}
+
+		if createdBy.Valid {
+			p.CreatedBy = createdBy.String
+		}
+		if approvedBy.Valid {
+			p.ApprovedBy = approvedBy.String
+		}
+		if approvedAt.Valid {
+			p.ApprovedAt = approvedAt.Time
+		}
+		if deletedAt.Valid {
+			p.DeletedAt = deletedAt.Time
+		}
+
 		policies = append(policies, p)
 	}
 
