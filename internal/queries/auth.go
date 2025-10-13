@@ -28,6 +28,7 @@ type AuthQueries interface {
 	UpdateLastLogin(userID string) error
 	UpdatePassword(userID, passwordHash string) error
 	UpdateEmailVerification(userID string, verified bool) error
+	GetPrimaryRoleForUser(userID string) (string, error)
 
 	// Session management
 	CreateSession(sessionID, userID, token string) error
@@ -360,6 +361,40 @@ func (q *authQueries) organizationExists(tx *sql.Tx, organizationID string) (boo
 	var exists bool
 	err := tx.QueryRowContext(q.ctx, query, organizationID).Scan(&exists)
 	return exists, err
+}
+
+func (q *authQueries) GetPrimaryRoleForUser(userID string) (string, error) {
+	query := `
+		SELECT r.name
+		FROM role_assignments ra
+		JOIN roles r ON ra.role_id = r.id
+		WHERE ra.principal_id = $1
+		  AND ra.principal_type = 'user'
+		  AND r.deleted_at IS NULL
+		ORDER BY r.created_at ASC
+		LIMIT 1
+	`
+
+	var role sql.NullString
+
+	var db DBTX = q.db
+	if q.tx != nil {
+		db = q.tx
+	}
+
+	err := db.QueryRowContext(q.ctx, query, userID).Scan(&role)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+
+	if role.Valid {
+		return role.String, nil
+	}
+
+	return "", nil
 }
 
 // CheckAdminExists checks if any admin user exists in the system

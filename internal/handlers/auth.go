@@ -483,11 +483,21 @@ func (h *AuthHandler) generateTokens(user *models.User) (string, string, int64, 
 	accessTokenExpiry := now.Add(time.Hour * 1)       // 1 hour
 	refreshTokenExpiry := now.Add(time.Hour * 24 * 7) // 7 days
 
+	roleName := "user"
+	if h.queries != nil && h.queries.Auth != nil {
+		if fetchedRole, err := h.queries.Auth.GetPrimaryRoleForUser(user.ID); err == nil && fetchedRole != "" {
+			roleName = fetchedRole
+		} else if err != nil {
+			h.logger.Warn("Failed to resolve primary role for user %s: %v", user.ID, err)
+		}
+	}
+
 	// Access Token Claims
 	accessClaims := jwt.MapClaims{
 		"user_id":         user.ID,
 		"email":           user.Email,
 		"organization_id": user.OrganizationID,
+		"role":            roleName,
 		"exp":             accessTokenExpiry.Unix(),
 		"iat":             now.Unix(),
 		"type":            "access",

@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/the-monkeys/monkeys-identity/internal/database"
 	"github.com/the-monkeys/monkeys-identity/internal/models"
@@ -271,7 +273,7 @@ func (q *policyQueries) CreatePolicy(policy *models.Policy) error {
 	policy.CreatedAt = time.Now()
 	policy.UpdatedAt = time.Now()
 	if policy.Status == "" {
-		policy.Status = "draft"
+		policy.Status = "active"
 	}
 	if policy.Version == "" {
 		policy.Version = "1.0.0"
@@ -291,7 +293,7 @@ func (q *policyQueries) CreatePolicy(policy *models.Policy) error {
 		INSERT INTO policy_versions (id, policy_id, version, document, created_by, created_at, status)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
-	versionID := policy.ID + "-v" + policy.Version
+	versionID := uuid.New().String()
 	_, err = db.ExecContext(q.ctx, versionQuery,
 		versionID, policy.ID, policy.Version, policy.Document,
 		policy.CreatedBy, policy.CreatedAt, "draft")
@@ -317,16 +319,36 @@ func (q *policyQueries) GetPolicy(id string) (*models.Policy, error) {
 	}
 
 	var p models.Policy
+	var (
+		createdBy  sql.NullString
+		approvedBy sql.NullString
+		approvedAt sql.NullTime
+		deletedAt  sql.NullTime
+	)
+
 	err := db.QueryRowContext(q.ctx, query, id).Scan(
 		&p.ID, &p.Name, &p.Description, &p.Version, &p.OrganizationID,
-		&p.Document, &p.PolicyType, &p.Effect, &p.IsSystemPolicy, &p.CreatedBy,
-		&p.ApprovedBy, &p.ApprovedAt, &p.Status, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt)
+		&p.Document, &p.PolicyType, &p.Effect, &p.IsSystemPolicy, &createdBy,
+		&approvedBy, &approvedAt, &p.Status, &p.CreatedAt, &p.UpdatedAt, &deletedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("policy not found")
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get policy: %w", err)
+	}
+
+	if createdBy.Valid {
+		p.CreatedBy = createdBy.String
+	}
+	if approvedBy.Valid {
+		p.ApprovedBy = approvedBy.String
+	}
+	if approvedAt.Valid {
+		p.ApprovedAt = approvedAt.Time
+	}
+	if deletedAt.Valid {
+		p.DeletedAt = deletedAt.Time
 	}
 
 	return &p, nil
@@ -344,11 +366,14 @@ func (q *policyQueries) UpdatePolicy(policy *models.Policy) error {
 		return err
 	}
 
+	if policy.Status == "" {
+		policy.Status = currentPolicy.Status
+	}
+
 	// Create new version if document changed
 	if currentPolicy.Document != policy.Document {
 		newVersion := q.incrementVersion(currentPolicy.Version)
 		policy.Version = newVersion
-		policy.Status = "draft" // New version starts as draft
 
 		// Create version record
 		versionQuery := `
@@ -360,7 +385,7 @@ func (q *policyQueries) UpdatePolicy(policy *models.Policy) error {
 			db = q.tx
 		}
 
-		versionID := policy.ID + "-v" + policy.Version
+		versionID := uuid.New().String()
 		_, err = db.ExecContext(q.ctx, versionQuery,
 			versionID, policy.ID, policy.Version, policy.Document,
 			policy.CreatedBy, time.Now(), "draft")
@@ -819,14 +844,27 @@ func (q *policyQueries) validatePolicyDocument(document string) error {
 }
 
 func (q *policyQueries) incrementVersion(currentVersion string) string {
-	// Simple version increment: 1.0.0 -> 1.0.1
 	parts := strings.Split(currentVersion, ".")
 	if len(parts) != 3 {
 		return "1.0.1"
 	}
 
-	// Increment patch version
-	return fmt.Sprintf("%s.%s.%d", parts[0], parts[1], 1) // Simplified
+	major, err := strconv.Atoi(parts[0])
+	if err != nil {
+		major = 1
+	}
+	minor, err := strconv.Atoi(parts[1])
+	if err != nil {
+		minor = 0
+	}
+	patch, err := strconv.Atoi(parts[2])
+	if err != nil {
+		patch = 0
+	}
+
+	patch++
+
+	return fmt.Sprintf("%d.%d.%d", major, minor, patch)
 }
 
 func (q *policyQueries) statementMatches(statement map[string]interface{}, context *PolicyEvaluationContext) bool {

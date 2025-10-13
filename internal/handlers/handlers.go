@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -901,12 +902,45 @@ func (h *PolicyHandler) ListPolicies(c *fiber.Ctx) error {
 //	@Security	BearerAuth
 //	@Router		/policies [post]
 func (h *PolicyHandler) CreatePolicy(c *fiber.Ctx) error {
-	var policy models.Policy
-	if err := c.BodyParser(&policy); err != nil {
+	type createPolicyRequest struct {
+		ID             string          `json:"id"`
+		Name           string          `json:"name"`
+		Description    string          `json:"description"`
+		Version        string          `json:"version"`
+		OrganizationID string          `json:"organization_id"`
+		Document       json.RawMessage `json:"document"`
+		PolicyType     string          `json:"policy_type"`
+		Effect         string          `json:"effect"`
+		IsSystemPolicy bool            `json:"is_system_policy"`
+		Status         string          `json:"status"`
+	}
+
+	var req createPolicyRequest
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
 			Error:   "invalid_request",
 			Message: "Invalid JSON format",
 		})
+	}
+
+	if len(req.Document) == 0 || !json.Valid(req.Document) {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Error:   "invalid_policy_document",
+			Message: "Policy document must be valid JSON",
+		})
+	}
+
+	policy := models.Policy{
+		ID:             req.ID,
+		Name:           req.Name,
+		Description:    req.Description,
+		Version:        req.Version,
+		OrganizationID: req.OrganizationID,
+		Document:       string(req.Document),
+		PolicyType:     req.PolicyType,
+		Effect:         req.Effect,
+		IsSystemPolicy: req.IsSystemPolicy,
+		Status:         req.Status,
 	}
 
 	// Generate ID if not provided
@@ -922,8 +956,11 @@ func (h *PolicyHandler) CreatePolicy(c *fiber.Ctx) error {
 		policy.Version = "1.0.0"
 	}
 
-	// TODO: Get user ID from JWT context
-	policy.CreatedBy = "current_user_id"
+	if userIDVal := c.Locals("user_id"); userIDVal != nil {
+		if userID, ok := userIDVal.(string); ok && userID != "" {
+			policy.CreatedBy = userID
+		}
+	}
 
 	err := h.queries.Policy.CreatePolicy(&policy)
 	if err != nil {
@@ -1008,20 +1045,70 @@ func (h *PolicyHandler) UpdatePolicy(c *fiber.Ctx) error {
 		})
 	}
 
-	var policy models.Policy
-	if err := c.BodyParser(&policy); err != nil {
+	type updatePolicyRequest struct {
+		Name           string          `json:"name"`
+		Description    string          `json:"description"`
+		Version        string          `json:"version"`
+		OrganizationID string          `json:"organization_id"`
+		Document       json.RawMessage `json:"document"`
+		PolicyType     string          `json:"policy_type"`
+		Effect         string          `json:"effect"`
+		IsSystemPolicy bool            `json:"is_system_policy"`
+		Status         string          `json:"status"`
+		ApprovedBy     string          `json:"approved_by"`
+		ApprovedAt     *time.Time      `json:"approved_at"`
+	}
+
+	var req updatePolicyRequest
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
 			Error:   "invalid_request",
 			Message: "Invalid JSON format",
 		})
 	}
 
+	if len(req.Document) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Error:   "invalid_policy_document",
+			Message: "Policy document is required",
+		})
+	}
+
+	if !json.Valid(req.Document) {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Error:   "invalid_policy_document",
+			Message: "Policy document must be valid JSON",
+		})
+	}
+
+	policy := models.Policy{
+		ID:             id,
+		Name:           req.Name,
+		Description:    req.Description,
+		Version:        req.Version,
+		OrganizationID: req.OrganizationID,
+		Document:       string(req.Document),
+		PolicyType:     req.PolicyType,
+		Effect:         req.Effect,
+		IsSystemPolicy: req.IsSystemPolicy,
+		Status:         req.Status,
+	}
+
 	// Ensure ID matches path parameter
 	policy.ID = id
 
-	// TODO: Get user ID from JWT context for audit trail
-	if policy.CreatedBy == "" {
-		policy.CreatedBy = "current_user_id"
+	// Capture acting user for auditing/versioning
+	if userIDVal := c.Locals("user_id"); userIDVal != nil {
+		if userID, ok := userIDVal.(string); ok && userID != "" {
+			policy.CreatedBy = userID
+		}
+	}
+
+	if req.ApprovedBy != "" {
+		policy.ApprovedBy = req.ApprovedBy
+	}
+	if req.ApprovedAt != nil {
+		policy.ApprovedAt = *req.ApprovedAt
 	}
 
 	err := h.queries.Policy.UpdatePolicy(&policy)
