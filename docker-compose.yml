@@ -11,7 +11,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -30,7 +29,18 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
+      timeout: 5s
       retries: 5
+
+  # Database Migrations
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./migrations:/migrations
+    command: -path /migrations -database postgres://postgres:password@postgres:5432/monkeys_iam?sslmode=disable up
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # Monkeys IAM Application
   monkeys-iam:

@@ -105,19 +105,23 @@ docker-compose-logs: ## View docker-compose logs
 	@docker-compose logs -f
 
 # Database
-db-setup: ## Setup database with schema
+db-setup: ## Setup database with mutations
 	@echo "Setting up database..."
-	@psql $(DATABASE_URL) -f schema.sql
+	@migrate -path migrations -database "$(DATABASE_URL)" up
 
 db-migrate: ## Run database migrations
 	@echo "Running database migrations..."
-	@# Add migration commands here
+	@migrate -path migrations -database "$(DATABASE_URL)" up
+
+db-rollback: ## Rollback the last migration
+	@echo "Rolling back database..."
+	@migrate -path migrations -database "$(DATABASE_URL)" down 1
 
 db-reset: ## Reset database
 	@echo "Resetting database..."
 	@dropdb --if-exists monkeys_iam
 	@createdb monkeys_iam
-	@psql $(DATABASE_URL) -f schema.sql
+	@migrate -path migrations -database "$(DATABASE_URL)" up
 
 # Clean
 clean: ## Clean build artifacts
@@ -147,6 +151,7 @@ install-tools: ## Install development tools
 	@go install github.com/cosmtrek/air@latest
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	@go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+	@go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Production
 deploy: ## Deploy to production
