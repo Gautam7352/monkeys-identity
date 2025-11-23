@@ -675,11 +675,12 @@ CREATE TRIGGER trigger_refresh_permissions_on_role_policy
 -- =============================================================================
 
 -- Create system organization (for system-wide resources)
-INSERT INTO organizations (id, name, slug, description, status) 
+INSERT INTO organizations (id, name,slug,parent_id, description, status) 
 VALUES (
     '00000000-0000-0000-0000-000000000000',
     'System',
     'system',
+    '',
     'System organization for global resources and policies',
     'active'
 ) ON CONFLICT DO NOTHING;
