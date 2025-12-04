@@ -65,7 +65,7 @@ export const organizationAPI = {
         api.get(`/organizations/${id}/settings`),
 
     updateSettings: (id, settings) =>
-        api.put(`/organizations/${id}/settings`, { settings }),
+        api.put(`/organizations/${id}/settings`, { settings: JSON.stringify(settings) }),
 
     getUsers: (id) =>
         api.get(`/organizations/${id}/users`),

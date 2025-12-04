@@ -17,6 +17,7 @@ const OrganizationDetail = () => {
     const [roles, setRoles] = useState([]);
     const [policies, setPolicies] = useState([]);
     const [resources, setResources] = useState([]);
+    const [orgSettings, setOrgSettings] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -245,6 +246,7 @@ const OrganizationDetail = () => {
                 rolesRes,
                 policiesRes,
                 resourcesRes,
+                settingsRes,
             ] = await Promise.all([
                 organizationAPI.get(id),
                 organizationAPI.getUsers(id),
@@ -252,6 +254,7 @@ const OrganizationDetail = () => {
                 organizationAPI.getRoles(id),
                 organizationAPI.getPolicies(id),
                 organizationAPI.getResources(id),
+                organizationAPI.getSettings(id),
             ]);
 
             const orgData = orgRes?.data?.data;
@@ -265,6 +268,7 @@ const OrganizationDetail = () => {
             setRoles(rolesRes.data.data.roles || []);
             setPolicies(policiesRes.data.data.policies || []);
             setResources(resourcesRes.data.data.resources || []);
+            setOrgSettings(parseJSON(settingsRes.data.data.settings) || {});
         } catch (fetchError) {
             console.error('Failed to fetch organization data:', fetchError);
             setOrganization(null);
@@ -273,6 +277,7 @@ const OrganizationDetail = () => {
             setRoles([]);
             setPolicies([]);
             setResources([]);
+            setOrgSettings({});
             setError('Unable to load organization details. Please try again.');
         } finally {
             if (showSpinner) {
@@ -316,9 +321,9 @@ const OrganizationDetail = () => {
 
     const org = organization;
     const metadata = parseJSON(org.metadata);
-    const settings = parseJSON(org.settings);
+    const orgSettingsParsed = parseJSON(org.settings);
     const metadataEntries = metadata && Object.entries(metadata);
-    const settingsEntries = settings && Object.entries(settings);
+    const settingsEntries = orgSettingsParsed && Object.entries(orgSettingsParsed);
 
     const overviewCards = [
         {
@@ -427,6 +432,12 @@ const OrganizationDetail = () => {
                             onClick={() => setActiveTab('resources')}
                         >
                             Resources ({resources.length})
+                        </button>
+                        <button
+                            className={activeTab === 'settings' ? 'tab active' : 'tab'}
+                            onClick={() => setActiveTab('settings')}
+                        >
+                            Settings
                         </button>
                     </div>
 
@@ -630,6 +641,35 @@ const OrganizationDetail = () => {
                                 {resources.length === 0 && <p className="empty-message">No resources found</p>}
                             </div>
                         )}
+
+                        {activeTab === 'settings' && (
+                            <div className="settings-section">
+                                <div className="settings-header">
+                                    <h3>Organization Settings</h3>
+                                    <button className="btn btn-primary" onClick={() => setActiveTab('settings-edit')}>
+                                        Edit Settings
+                                    </button>
+                                </div>
+                                <div className="info-card">
+                                    <h4>Current Settings</h4>
+                                    {Object.keys(orgSettings).length > 0 ? (
+                                        <div className="key-value-grid">
+                                            {Object.entries(orgSettings).map(([key, value]) => (
+                                                <div key={key}>
+                                                    <strong>{key}</strong>
+                                                    <span>{typeof value === 'object' ? JSON.stringify(value, null, 2) : displayValue(value)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="empty-note">No settings configured</p>
+                                    )}
+                                    <pre className="json-preview">{JSON.stringify(orgSettings, null, 2)}</pre>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'settings-edit' && <SettingsEditTab orgId={id} currentSettings={orgSettings} onSave={() => { setActiveTab('settings'); fetchOrganizationData({ showSpinner: false }); }} onCancel={() => setActiveTab('settings')} />}
                     </div>
                 </main>
             </div>
@@ -791,6 +831,74 @@ const OrganizationDetail = () => {
                 </div>
             )}
         </>
+    );
+};
+
+const SettingsEditTab = ({ orgId, currentSettings, onSave, onCancel }) => {
+    const [settingsJson, setSettingsJson] = useState(JSON.stringify(currentSettings, null, 2));
+    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        setError(null);
+        setSuccess(null);
+
+        try {
+            const parsedSettings = JSON.parse(settingsJson);
+            await organizationAPI.updateSettings(orgId, parsedSettings);
+            setSuccess('Settings updated successfully');
+            setTimeout(() => onSave(), 1500);
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                setError('Invalid JSON format');
+            } else {
+                setError(err.response?.data?.message || 'Failed to update settings');
+            }
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="settings-edit-section">
+            <div className="settings-header">
+                <h3>Edit Organization Settings</h3>
+            </div>
+            <div className="form-group">
+                <label htmlFor="settings-json">Settings (JSON)</label>
+                <textarea
+                    id="settings-json"
+                    className="json-input"
+                    rows="15"
+                    value={settingsJson}
+                    onChange={(e) => setSettingsJson(e.target.value)}
+                    placeholder='{"key": "value"}'
+                />
+                <p className="field-help">Provide a valid JSON object for organization settings.</p>
+            </div>
+            {error && <div className="save-error">{error}</div>}
+            {success && <div className="inline-alert inline-alert-success">{success}</div>}
+            <div className="modal-actions">
+                <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={onCancel}
+                    disabled={isSaving}
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    className="btn-save"
+                    onClick={handleSave}
+                    disabled={isSaving}
+                >
+                    {isSaving ? 'Saving...' : 'Save Settings'}
+                </button>
+            </div>
+        </div>
     );
 };
 
