@@ -182,6 +182,13 @@ func (h *OrganizationHandler) UpdateOrganization(c *fiber.Ctx) error {
 	if upd.Status == "" {
 		upd.Status = "active"
 	}
+	// Set default empty JSON for metadata and settings if not provided
+	if upd.Metadata == "" {
+		upd.Metadata = "{}"
+	}
+	if upd.Settings == "" {
+		upd.Settings = "{}"
+	}
 	if err := h.queries.Organization.UpdateOrganization(&upd); err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return c.Status(fiber.StatusNotFound).JSON(ErrorResponse{Status: fiber.StatusNotFound, Error: "organization_not_found", Message: "Organization not found or deleted"})
