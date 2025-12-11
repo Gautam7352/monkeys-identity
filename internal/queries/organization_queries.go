@@ -3,6 +3,7 @@ package queries
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/redis/go-redis/v9"
@@ -195,10 +196,49 @@ func (q *organizationQueries) ListOrganizationUsers(orgID string) ([]models.User
 	users := []models.User{}
 	for rows.Next() {
 		var u models.User
-		if err := rows.Scan(&u.ID, &u.Username, &u.Email, &u.EmailVerified, &u.DisplayName, &u.AvatarURL, &u.OrganizationID, &u.PasswordHash, &u.PasswordChangedAt,
-			&u.MFAEnabled, &u.MFAMethods, &u.MFABackupCodes, &u.Attributes, &u.Preferences, &u.LastLogin, &u.FailedLoginAttempts, &u.LockedUntil, &u.Status, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt); err != nil {
+		var avatarURL, mfaMethodsJSON, mfaBackupCodesJSON, attributes, preferences sql.NullString
+		var lastLogin, lockedUntil, deletedAt sql.NullTime
+
+		if err := rows.Scan(&u.ID, &u.Username, &u.Email, &u.EmailVerified, &u.DisplayName, &avatarURL, &u.OrganizationID, &u.PasswordHash, &u.PasswordChangedAt,
+			&u.MFAEnabled, &mfaMethodsJSON, &mfaBackupCodesJSON, &attributes, &preferences, &lastLogin, &u.FailedLoginAttempts, &lockedUntil, &u.Status, &u.CreatedAt, &u.UpdatedAt, &deletedAt); err != nil {
 			return nil, err
 		}
+
+		// Handle nullable string fields
+		if avatarURL.Valid {
+			u.AvatarURL = avatarURL.String
+		}
+		if attributes.Valid {
+			u.Attributes = attributes.String
+		}
+		if preferences.Valid {
+			u.Preferences = preferences.String
+		}
+
+		// Handle nullable time fields
+		if lastLogin.Valid {
+			u.LastLogin = lastLogin.Time
+		}
+		if lockedUntil.Valid {
+			u.LockedUntil = lockedUntil.Time
+		}
+		if deletedAt.Valid {
+			u.DeletedAt = deletedAt.Time
+		}
+
+		// Unmarshal JSONB arrays
+		if mfaMethodsJSON.Valid && mfaMethodsJSON.String != "" && mfaMethodsJSON.String != "null" {
+			json.Unmarshal([]byte(mfaMethodsJSON.String), &u.MFAMethods)
+		} else {
+			u.MFAMethods = []string{}
+		}
+
+		if mfaBackupCodesJSON.Valid && mfaBackupCodesJSON.String != "" && mfaBackupCodesJSON.String != "null" {
+			json.Unmarshal([]byte(mfaBackupCodesJSON.String), &u.MFABackupCodes)
+		} else {
+			u.MFABackupCodes = []string{}
+		}
+
 		users = append(users, u)
 	}
 	return users, nil
@@ -273,9 +313,27 @@ func (q *organizationQueries) ListOrganizationPolicies(orgID string) ([]models.P
 	list := []models.Policy{}
 	for rows.Next() {
 		var p models.Policy
-		if err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.Version, &p.OrganizationID, &p.Document, &p.PolicyType, &p.Effect, &p.IsSystemPolicy, &p.CreatedBy, &p.ApprovedBy, &p.ApprovedAt, &p.Status, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt); err != nil {
+		var createdBy, approvedBy sql.NullString
+		var approvedAt, deletedAt sql.NullTime
+
+		if err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.Version, &p.OrganizationID, &p.Document, &p.PolicyType, &p.Effect, &p.IsSystemPolicy, &createdBy, &approvedBy, &approvedAt, &p.Status, &p.CreatedAt, &p.UpdatedAt, &deletedAt); err != nil {
 			return nil, err
 		}
+
+		// Handle nullable fields
+		if createdBy.Valid {
+			p.CreatedBy = createdBy.String
+		}
+		if approvedBy.Valid {
+			p.ApprovedBy = approvedBy.String
+		}
+		if approvedAt.Valid {
+			p.ApprovedAt = approvedAt.Time
+		}
+		if deletedAt.Valid {
+			p.DeletedAt = deletedAt.Time
+		}
+
 		list = append(list, p)
 	}
 	return list, nil
@@ -298,9 +356,24 @@ func (q *organizationQueries) ListOrganizationRoles(orgID string) ([]models.Role
 	list := []models.Role{}
 	for rows.Next() {
 		var r models.Role
-		if err := rows.Scan(&r.ID, &r.Name, &r.Description, &r.OrganizationID, &r.RoleType, &r.MaxSessionDuration, &r.TrustPolicy, &r.AssumeRolePolicy, &r.Tags, &r.IsSystemRole, &r.Path, &r.PermissionsBoundary, &r.Status, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt); err != nil {
+		var path, permissionsBoundary sql.NullString
+		var deletedAt sql.NullTime
+
+		if err := rows.Scan(&r.ID, &r.Name, &r.Description, &r.OrganizationID, &r.RoleType, &r.MaxSessionDuration, &r.TrustPolicy, &r.AssumeRolePolicy, &r.Tags, &r.IsSystemRole, &path, &permissionsBoundary, &r.Status, &r.CreatedAt, &r.UpdatedAt, &deletedAt); err != nil {
 			return nil, err
 		}
+
+		// Handle nullable fields
+		if path.Valid {
+			r.Path = path.String
+		}
+		if permissionsBoundary.Valid {
+			r.PermissionsBoundary = permissionsBoundary.String
+		}
+		if deletedAt.Valid {
+			r.DeletedAt = deletedAt.Time
+		}
+
 		list = append(list, r)
 	}
 	return list, nil

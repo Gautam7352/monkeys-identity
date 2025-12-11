@@ -85,10 +85,10 @@ func SetupRoutes(
 	// Organization management routes
 	orgs := protected.Group("/organizations")
 	orgs.Get("/", organizationHandler.ListOrganizations)
-	orgs.Post("/", authMiddleware.RequireRole("super_admin"), organizationHandler.CreateOrganization)
+	orgs.Post("/", authMiddleware.RequireRole("admin"), organizationHandler.CreateOrganization)
 	orgs.Get("/:id", organizationHandler.GetOrganization)
 	orgs.Put("/:id", authMiddleware.RequireRole("admin"), organizationHandler.UpdateOrganization)
-	orgs.Delete("/:id", authMiddleware.RequireRole("super_admin"), organizationHandler.DeleteOrganization)
+	orgs.Delete("/:id", authMiddleware.RequireRole("admin"), organizationHandler.DeleteOrganization)
 	orgs.Get("/:id/users", organizationHandler.GetOrganizationUsers)
 	orgs.Get("/:id/groups", organizationHandler.GetOrganizationGroups)
 	orgs.Get("/:id/resources", organizationHandler.GetOrganizationResources)
@@ -193,7 +193,7 @@ func SetupRoutes(
 	reviews.Post("/:id/complete", authMiddleware.RequireRole("admin"), auditHandler.CompleteAccessReview)
 
 	// Admin routes (super admin only)
-	admin := protected.Group("/admin", authMiddleware.RequireRole("super_admin"))
+	admin := protected.Group("/admin", authMiddleware.RequireRole("admin"))
 	admin.Get("/stats", auditHandler.GetSystemStats)
 	admin.Get("/health-check", auditHandler.SystemHealthCheck)
 	admin.Post("/maintenance-mode", auditHandler.EnableMaintenanceMode)

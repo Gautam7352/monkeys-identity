@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/the-monkeys/monkeys-identity/internal/models"
 	"github.com/the-monkeys/monkeys-identity/internal/queries"
 	"github.com/the-monkeys/monkeys-identity/pkg/logger"
@@ -143,6 +144,7 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 
 	// Create new user
 	user := &models.User{
+		ID:             uuid.NewString(),
 		Email:          req.Email,
 		Username:       req.Username,
 		DisplayName:    req.DisplayName,
