@@ -213,11 +213,11 @@ const UserDetailTab = ({ user, onUpdate, onBack }) => {
                     <div className="info-grid">
                         <div>
                             <strong>User ID</strong>
-                            <span>{user.id}</span>
+                            <span className="uuid-display">{user.id}</span>
                         </div>
                         <div>
                             <strong>Organization ID</strong>
-                            <span>{user.organization_id}</span>
+                            <span className="uuid-display">{user.organization_id}</span>
                         </div>
                         <div>
                             <strong>Email Verified</strong>
@@ -412,11 +412,11 @@ const GroupDetailTab = ({ group, onUpdate, onBack }) => {
                     <div className="info-grid">
                         <div>
                             <strong>Group ID</strong>
-                            <span>{group.id}</span>
+                            <span className="uuid-display">{group.id}</span>
                         </div>
                         <div>
                             <strong>Organization ID</strong>
-                            <span>{group.organization_id}</span>
+                            <span className="uuid-display">{group.organization_id}</span>
                         </div>
                         <div>
                             <strong>Created</strong>
@@ -595,11 +595,11 @@ const RoleDetailTab = ({ role, onUpdate, onBack }) => {
                     <div className="info-grid">
                         <div>
                             <strong>Role ID</strong>
-                            <span>{role.id}</span>
+                            <span className="uuid-display">{role.id}</span>
                         </div>
                         <div>
                             <strong>Organization ID</strong>
-                            <span>{role.organization_id}</span>
+                            <span className="uuid-display">{role.organization_id}</span>
                         </div>
                         <div>
                             <strong>Created</strong>
@@ -798,11 +798,11 @@ const PolicyDetailTab = ({ policy, onUpdate, onBack }) => {
                     <div className="info-grid">
                         <div>
                             <strong>Policy ID</strong>
-                            <span>{policy.id}</span>
+                            <span className="uuid-display">{policy.id}</span>
                         </div>
                         <div>
                             <strong>Organization ID</strong>
-                            <span>{policy.organization_id}</span>
+                            <span className="uuid-display">{policy.organization_id}</span>
                         </div>
                         <div>
                             <strong>Created</strong>
@@ -995,11 +995,11 @@ const ResourceDetailTab = ({ resource, onUpdate, onBack }) => {
                     <div className="info-grid">
                         <div>
                             <strong>Resource ID</strong>
-                            <span>{resource.id}</span>
+                            <span className="uuid-display">{resource.id}</span>
                         </div>
                         <div>
                             <strong>Organization ID</strong>
-                            <span>{resource.organization_id}</span>
+                            <span className="uuid-display">{resource.organization_id}</span>
                         </div>
                         <div>
                             <strong>Created</strong>
