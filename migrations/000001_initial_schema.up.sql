@@ -21,7 +21,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE resource_type AS ENUM ('object', 'service', 'namespace', 'infrastructure');
+    CREATE TYPE resource_type AS ENUM ('object', 'service', 'namespace', 'infrastructure', 'application', 'configuration', 'data', 'documentation', 'blog');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;

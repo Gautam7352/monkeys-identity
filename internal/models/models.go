@@ -66,18 +66,18 @@ type ServiceAccount struct {
 
 // Group represents a collection of users and service accounts
 type Group struct {
-	ID             string    `json:"id" db:"id"`
-	Name           string    `json:"name" db:"name"`
-	Description    string    `json:"description" db:"description"`
-	OrganizationID string    `json:"organization_id" db:"organization_id"`
-	ParentGroupID  string    `json:"parent_group_id" db:"parent_group_id"`
-	GroupType      string    `json:"group_type" db:"group_type"`
-	Attributes     string    `json:"attributes" db:"attributes"` // JSONB as string
-	MaxMembers     int       `json:"max_members" db:"max_members"`
-	Status         string    `json:"status" db:"status"`
-	CreatedAt      time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
-	DeletedAt      time.Time `json:"deleted_at" db:"deleted_at"`
+	ID             string     `json:"id" db:"id"`
+	Name           string     `json:"name" db:"name"`
+	Description    string     `json:"description" db:"description"`
+	OrganizationID string     `json:"organization_id" db:"organization_id"`
+	ParentGroupID  *string    `json:"parent_group_id" db:"parent_group_id"`
+	GroupType      string     `json:"group_type" db:"group_type"`
+	Attributes     string     `json:"attributes" db:"attributes"` // JSONB as string
+	MaxMembers     int        `json:"max_members" db:"max_members"`
+	Status         string     `json:"status" db:"status"`
+	CreatedAt      time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at" db:"updated_at"`
+	DeletedAt      *time.Time `json:"deleted_at" db:"deleted_at"`
 }
 
 // GroupMembership represents membership of a principal in a group
@@ -94,29 +94,29 @@ type GroupMembership struct {
 
 // Resource represents any accessible object or service
 type Resource struct {
-	ID               string    `json:"id" db:"id"`
-	ARN              string    `json:"arn" db:"arn"`
-	Name             string    `json:"name" db:"name"`
-	Description      string    `json:"description" db:"description"`
-	Type             string    `json:"type" db:"type"`
-	OrganizationID   string    `json:"organization_id" db:"organization_id"`
-	ParentResourceID string    `json:"parent_resource_id" db:"parent_resource_id"`
-	OwnerID          string    `json:"owner_id" db:"owner_id"`
-	OwnerType        string    `json:"owner_type" db:"owner_type"`
-	Attributes       string    `json:"attributes" db:"attributes"` // JSONB as string
-	Tags             string    `json:"tags" db:"tags"`             // JSONB as string
-	EncryptionKeyID  string    `json:"encryption_key_id" db:"encryption_key_id"`
-	LifecyclePolicy  string    `json:"lifecycle_policy" db:"lifecycle_policy"` // JSONB as string
-	AccessLevel      string    `json:"access_level" db:"access_level"`
-	ContentType      string    `json:"content_type" db:"content_type"`
-	SizeBytes        int64     `json:"size_bytes" db:"size_bytes"`
-	Checksum         string    `json:"checksum" db:"checksum"`
-	Version          string    `json:"version" db:"version"`
-	Status           string    `json:"status" db:"status"`
-	CreatedAt        time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at" db:"updated_at"`
-	AccessedAt       time.Time `json:"accessed_at" db:"accessed_at"`
-	DeletedAt        time.Time `json:"deleted_at" db:"deleted_at"`
+	ID               string     `json:"id" db:"id"`
+	ARN              string     `json:"arn" db:"arn"`
+	Name             string     `json:"name" db:"name"`
+	Description      *string    `json:"description" db:"description"`
+	Type             string     `json:"type" db:"type"`
+	OrganizationID   string     `json:"organization_id" db:"organization_id"`
+	ParentResourceID *string    `json:"parent_resource_id" db:"parent_resource_id"`
+	OwnerID          *string    `json:"owner_id" db:"owner_id"`
+	OwnerType        *string    `json:"owner_type" db:"owner_type"`
+	Attributes       string     `json:"attributes" db:"attributes"` // JSONB as string
+	Tags             string     `json:"tags" db:"tags"`             // JSONB as string
+	EncryptionKeyID  *string    `json:"encryption_key_id" db:"encryption_key_id"`
+	LifecyclePolicy  string     `json:"lifecycle_policy" db:"lifecycle_policy"` // JSONB as string
+	AccessLevel      string     `json:"access_level" db:"access_level"`
+	ContentType      *string    `json:"content_type" db:"content_type"`
+	SizeBytes        *int64     `json:"size_bytes" db:"size_bytes"`
+	Checksum         *string    `json:"checksum" db:"checksum"`
+	Version          *string    `json:"version" db:"version"`
+	Status           string     `json:"status" db:"status"`
+	CreatedAt        time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt        time.Time  `json:"updated_at" db:"updated_at"`
+	AccessedAt       *time.Time `json:"accessed_at" db:"accessed_at"`
+	DeletedAt        *time.Time `json:"deleted_at" db:"deleted_at"`
 }
 
 // Policy represents access control policies

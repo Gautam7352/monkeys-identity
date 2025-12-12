@@ -14,7 +14,7 @@ INSERT INTO organizations (
     'Default organization for initial system setup',
     '{"theme": "default", "timezone": "UTC", "language": "en"}',
     'active'
-) ON CONFLICT (slug) DO NOTHING;
+) ON CONFLICT DO NOTHING;
 
 -- =============================================================================
 -- DEFAULT ROLES
@@ -78,7 +78,7 @@ INSERT INTO roles (
     true,
     'active'
 )
-ON CONFLICT (organization_id, name) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- =============================================================================
 -- DEFAULT GROUPS
@@ -142,7 +142,7 @@ INSERT INTO groups (
     20,
     'active'
 )
-ON CONFLICT (organization_id, name) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- =============================================================================
 -- DEFAULT POLICIES
@@ -226,7 +226,7 @@ INSERT INTO policies (
                     "organization:update",
                     "audit:read"
                 ],
-                "resource": ["arn:monkeys:iam:org:${organization_id}/*"],
+                "resource": ["arn:monkey:iam:org:${organization_id}/*"],
                 "condition": {}
             }
         ]
@@ -254,8 +254,8 @@ INSERT INTO policies (
                     "users:read"
                 ],
                 "resource": [
-                    "arn:monkeys:iam:user:${user_id}",
-                    "arn:monkeys:iam:org:${organization_id}/resource/*"
+                    "arn:monkey:iam:user:${user_id}",
+                    "arn:monkey:iam:org:${organization_id}/resource/*"
                 ],
                 "condition": {}
             }
@@ -296,76 +296,7 @@ INSERT INTO policies (
     'allow',
     true,
     'active'
-) ON CONFLICT (organization_id, name) DO NOTHING;
-
--- =============================================================================
--- DEFAULT USERS
--- =============================================================================
-
-INSERT INTO users (
-    id, username, email, display_name, organization_id, password_hash, status, email_verified, attributes, preferences
-) VALUES 
-(
-    '00000000-0000-4000-8000-000000000100',
-    'admin',
-    'admin@monkeys-identity.local',
-    'System Administrator',
-    '00000000-0000-4000-8000-000000000001',
-    '$2a$10$8K1p/a0dBxeCOVOwYep1POVhsGSLm/8G6.YcCYo6h8OXYr7OqcFJy', -- AdminPassword123!
-    'active',
-    true,
-    '{"title": "System Administrator", "department": "IT", "location": "System"}',
-    '{"theme": "dark", "language": "en", "timezone": "UTC", "notifications": true}'
-),
-(
-    '00000000-0000-4000-8000-000000000101',
-    'system',
-    'system@monkeys-identity.local',
-    'System User',
-    '00000000-0000-4000-8000-000000000001',
-    '$2a$10$9L2q/b1eGyfDPWPxZfq2QUWitHSMn/9H7.ZdDZp7i9PYZs8PrdGKu', -- SystemPassword123!
-    'active',
-    true,
-    '{"title": "System User", "department": "System", "location": "Internal"}',
-    '{"theme": "default", "language": "en", "timezone": "UTC", "notifications": false}'
-),
-(
-    '00000000-0000-4000-8000-000000000102',
-    'orgadmin',
-    'orgadmin@monkeys-identity.local',
-    'Organization Administrator',
-    '00000000-0000-4000-8000-000000000001',
-    '$2a$10$QJ8KmV7VjNwKjgFpR8nY9eLxGjO3qQ5YzV8bX2cH9dK1nP4xR6sT8u', -- OrgAdmin123!
-    'active',
-    true,
-    '{"title": "Organization Administrator", "department": "Operations", "location": "Main Office"}',
-    '{"theme": "light", "language": "en", "timezone": "UTC", "notifications": true}'
-),
-(
-    '00000000-0000-4000-8000-000000000103',
-    'demouser',
-    'demouser@monkeys-identity.local',
-    'Demo User',
-    '00000000-0000-4000-8000-000000000001',
-    '$2a$10$8F3dV2nK9aLpQ6rX4sY1wO7MgH5iT3zE8qR9uC2bN1vJ0xP7kL4mS', -- User123!
-    'active',
-    true,
-    '{"title": "Demo User", "department": "General", "location": "Remote"}',
-    '{"theme": "auto", "language": "en", "timezone": "UTC", "notifications": true}'
-),
-(
-    '00000000-0000-4000-8000-000000000104',
-    'viewer',
-    'viewer@monkeys-identity.local',
-    'Demo Viewer',
-    '00000000-0000-4000-8000-000000000001',
-    '$2a$10$7A8bP1qR5xM3wK6zN9yH2eL4cF7iS2dO5vT8uJ9nQ1mX0pK3gH6vY', -- Viewer123!
-    'active',
-    true,
-    '{"title": "Demo Viewer", "department": "Audit", "location": "Main Office"}',
-    '{"theme": "light", "language": "en", "timezone": "UTC", "notifications": false}'
-)
-ON CONFLICT (organization_id, username) DO NOTHING;
+) ON CONFLICT DO NOTHING;
 
 -- =============================================================================
 -- DEFAULT RESOURCES
@@ -380,7 +311,7 @@ INSERT INTO resources (
     'User creation, modification, and deletion operations',
     '00000000-0000-4000-8000-000000000001',
     'application',
-    'arn:monkeys:iam:org:00000000-0000-4000-8000-000000000001:resource/user-management',
+    'arn:monkey:iam:org:00000000-0000-4000-8000-000000000001:resource/user-management',
     '{"endpoint": "/api/v1/users", "methods": ["GET", "POST", "PUT", "DELETE"], "rate_limit": 100}',
     '{"category": "user-management", "criticality": "high", "department": "IT"}',
     'active'
@@ -391,7 +322,7 @@ INSERT INTO resources (
     'Role and permission management operations',
     '00000000-0000-4000-8000-000000000001',
     'application',
-    'arn:monkeys:iam:org:00000000-0000-4000-8000-000000000001:resource/role-management',
+    'arn:monkey:iam:org:00000000-0000-4000-8000-000000000001:resource/role-management',
     '{"endpoint": "/api/v1/roles", "methods": ["GET", "POST", "PUT", "DELETE"], "rate_limit": 50}',
     '{"category": "access-control", "criticality": "high", "department": "IT"}',
     'active'
@@ -402,7 +333,7 @@ INSERT INTO resources (
     'Organization configuration and settings management',
     '00000000-0000-4000-8000-000000000001',
     'configuration',
-    'arn:monkeys:iam:org:00000000-0000-4000-8000-000000000001:resource/org-settings',
+    'arn:monkey:iam:org:00000000-0000-4000-8000-000000000001:resource/org-settings',
     '{"endpoint": "/api/v1/organizations", "methods": ["GET", "PUT"], "rate_limit": 20}',
     '{"category": "configuration", "criticality": "medium", "department": "Operations"}',
     'active'
@@ -413,7 +344,7 @@ INSERT INTO resources (
     'System audit logs and compliance reporting',
     '00000000-0000-4000-8000-000000000001',
     'data',
-    'arn:monkeys:iam:org:00000000-0000-4000-8000-000000000001:resource/audit-logs',
+    'arn:monkey:iam:org:00000000-0000-4000-8000-000000000001:resource/audit-logs',
     '{"endpoint": "/api/v1/audit", "methods": ["GET"], "rate_limit": 200, "retention_days": 2555}',
     '{"category": "audit", "criticality": "high", "department": "Compliance"}',
     'active'
@@ -424,61 +355,12 @@ INSERT INTO resources (
     'System API documentation and developer resources',
     '00000000-0000-4000-8000-000000000001',
     'documentation',
-    'arn:monkeys:iam:org:00000000-0000-4000-8000-000000000001:resource/api-docs',
+    'arn:monkey:iam:org:00000000-0000-4000-8000-000000000001:resource/api-docs',
     '{"endpoint": "/api/docs", "methods": ["GET"], "rate_limit": 1000, "public": true}',
     '{"category": "documentation", "criticality": "low", "department": "Development"}',
     'active'
 )
-ON CONFLICT (organization_id, name) DO NOTHING;
-
--- =============================================================================
--- ROLE ASSIGNMENTS
--- =============================================================================
-
-INSERT INTO role_assignments (
-    id, role_id, principal_type, principal_id, assigned_by, conditions
-) VALUES 
-(
-    '00000000-0000-4000-8000-000000000200',
-    '00000000-0000-4000-8000-000000000010', -- admin role
-    'user',
-    '00000000-0000-4000-8000-000000000100', -- admin user
-    '00000000-0000-4000-8000-000000000100',
-    '{}'
-),
-(
-    '00000000-0000-4000-8000-000000000201',
-    '00000000-0000-4000-8000-000000000014', -- service role
-    'user',
-    '00000000-0000-4000-8000-000000000101', -- system user
-    '00000000-0000-4000-8000-000000000100',
-    '{}'
-),
-(
-    '00000000-0000-4000-8000-000000000202',
-    '00000000-0000-4000-8000-000000000011', -- org-admin role
-    'user',
-    '00000000-0000-4000-8000-000000000102', -- org-admin user
-    '00000000-0000-4000-8000-000000000100',
-    '{}'
-),
-(
-    '00000000-0000-4000-8000-000000000203',
-    '00000000-0000-4000-8000-000000000012', -- user role
-    'user',
-    '00000000-0000-4000-8000-000000000103', -- demo user
-    '00000000-0000-4000-8000-000000000100',
-    '{}'
-),
-(
-    '00000000-0000-4000-8000-000000000204',
-    '00000000-0000-4000-8000-000000000013', -- viewer role
-    'user',
-    '00000000-0000-4000-8000-000000000104', -- viewer user
-    '00000000-0000-4000-8000-000000000100',
-    '{}'
-)
-ON CONFLICT (role_id, principal_id, principal_type) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- =============================================================================
 -- ROLE POLICIES
@@ -491,33 +373,33 @@ INSERT INTO role_policies (
     '00000000-0000-4000-8000-000000000700',
     '00000000-0000-4000-8000-000000000010', -- admin role
     '00000000-0000-0000-0000-000000000006', -- FullAccess (new ID)
-    '00000000-0000-4000-8000-000000000100'
+    NULL
 ),
 (
     '00000000-0000-4000-8000-000000000701',
     '00000000-0000-4000-8000-000000000014', -- service role
     '00000000-0000-0000-0000-000000000005', -- ServiceAccountAccess
-    '00000000-0000-4000-8000-000000000100'
+    NULL
 ),
 (
     '00000000-0000-4000-8000-000000000702',
     '00000000-0000-4000-8000-000000000011', -- org-admin role
     '00000000-0000-0000-0000-000000000003', -- OrganizationAdminAccess
-    '00000000-0000-4000-8000-000000000100'
+    NULL
 ),
 (
     '00000000-0000-4000-8000-000000000703',
     '00000000-0000-4000-8000-000000000012', -- user role
     '00000000-0000-0000-0000-000000000004', -- StandardUserAccess
-    '00000000-0000-4000-8000-000000000100'
+    NULL
 ),
 (
     '00000000-0000-4000-8000-000000000704',
     '00000000-0000-4000-8000-000000000013', -- viewer role
     '00000000-0000-0000-0000-000000000007', -- ReadOnlyAccess (new ID)
-    '00000000-0000-4000-8000-000000000100'
+    NULL
 )
-ON CONFLICT (role_id, policy_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Refresh permissions
 REFRESH MATERIALIZED VIEW user_effective_permissions;
