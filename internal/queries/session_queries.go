@@ -10,6 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/the-monkeys/monkeys-identity/internal/database"
 	"github.com/the-monkeys/monkeys-identity/internal/models"
+	"github.com/the-monkeys/monkeys-identity/pkg/logger"
 )
 
 // SessionQueries defines all session management database operations
@@ -70,22 +71,23 @@ type SessionActivity struct {
 }
 
 type sessionQueries struct {
-	db    *database.DB
-	redis *redis.Client
-	tx    *sql.Tx
-	ctx   context.Context
+	db     *database.DB
+	redis  *redis.Client
+	logger *logger.Logger
+	tx     *sql.Tx
+	ctx    context.Context
 }
 
-func NewSessionQueries(db *database.DB, redis *redis.Client) SessionQueries {
-	return &sessionQueries{db: db, redis: redis, ctx: context.Background()}
+func NewSessionQueries(db *database.DB, redis *redis.Client, logger *logger.Logger) SessionQueries {
+	return &sessionQueries{db: db, redis: redis, logger: logger, ctx: context.Background()}
 }
 
 func (q *sessionQueries) WithTx(tx *sql.Tx) SessionQueries {
-	return &sessionQueries{db: q.db, redis: q.redis, tx: tx, ctx: q.ctx}
+	return &sessionQueries{db: q.db, redis: q.redis, logger: q.logger, tx: tx, ctx: q.ctx}
 }
 
 func (q *sessionQueries) WithContext(ctx context.Context) SessionQueries {
-	return &sessionQueries{db: q.db, redis: q.redis, tx: q.tx, ctx: ctx}
+	return &sessionQueries{db: q.db, redis: q.redis, logger: q.logger, tx: q.tx, ctx: ctx}
 }
 
 func (q *sessionQueries) CreateSession(session *models.Session) error {
@@ -120,7 +122,9 @@ func (q *sessionQueries) CreateSession(session *models.Session) error {
 		err = q.cacheSession(session)
 		if err != nil {
 			// Log error but don't fail the operation
-			// TODO: Add proper logging
+			if q.logger != nil {
+				q.logger.Error("failed to cache session in redis: %v", err)
+			}
 		}
 	}
 

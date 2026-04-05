@@ -126,8 +126,8 @@ func (h *AuthHandler) RegisterOrganization(c *fiber.Ctx) error {
 		PasswordHash:   string(hashedPassword),
 		Status:         "active",
 		EmailVerified:  false, // Require email verification
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
 
 	// We need to ensure the Org Name is set correctly.
