@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -858,8 +859,153 @@ func (q *policyQueries) statementMatches(statement map[string]interface{}, conte
 		return false
 	}
 
-	// TODO: Add condition evaluation
+	// Evaluate conditions
+	if conditions, ok := statement["Condition"].(map[string]interface{}); ok {
+		if !q.evaluateConditions(conditions, context) {
+			return false
+		}
+	}
+
 	return true
+}
+
+func (q *policyQueries) evaluateConditions(conditions map[string]interface{}, context *PolicyEvaluationContext) bool {
+	for operator, conditionsMap := range conditions {
+		operatorConditions, ok := conditionsMap.(map[string]interface{})
+		if !ok {
+			return false // Invalid format, fail securely.
+		}
+
+		for key, expectedValue := range operatorConditions {
+			actualValue := q.getContextValue(key, context)
+
+			if !q.evaluateCondition(operator, expectedValue, actualValue) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (q *policyQueries) getContextValue(key string, context *PolicyEvaluationContext) string {
+	switch key {
+	case "Principal":
+		return context.Principal
+	case "Resource":
+		return context.Resource
+	case "Action":
+		return context.Action
+	case "SourceIP":
+		return context.SourceIP
+	case "UserAgent":
+		return context.UserAgent
+	case "SessionID":
+		return context.SessionID
+	case "RequestTime":
+		return context.RequestTime.Format(time.RFC3339)
+	default:
+		// Check environment
+		if context.Environment != nil {
+			if val, ok := context.Environment[key]; ok {
+				return val
+			}
+		}
+		// Could handle tags like "aws:ResourceTag/key" here.
+		return ""
+	}
+}
+
+func (q *policyQueries) evaluateCondition(operator string, expected interface{}, actual string) bool {
+	switch operator {
+	case "StringEquals":
+		expectedStr, ok := expected.(string)
+		if !ok {
+			return false
+		}
+		return expectedStr == actual
+	case "StringNotEquals":
+		expectedStr, ok := expected.(string)
+		if !ok {
+			return false
+		}
+		return expectedStr != actual
+	case "StringLike":
+		expectedStr, ok := expected.(string)
+		if !ok {
+			return false
+		}
+		return q.globMatch(expectedStr, actual)
+	case "StringNotLike":
+		expectedStr, ok := expected.(string)
+		if !ok {
+			return false
+		}
+		return !q.globMatch(expectedStr, actual)
+	case "IpAddress":
+		expectedStr, ok := expected.(string)
+		if !ok {
+			return false
+		}
+		if strings.Contains(expectedStr, "/") {
+			_, subnet, err := net.ParseCIDR(expectedStr)
+			if err != nil {
+				return false
+			}
+			ip := net.ParseIP(actual)
+			if ip == nil {
+				return false
+			}
+			return subnet.Contains(ip)
+		}
+		return expectedStr == actual
+	case "NotIpAddress":
+		expectedStr, ok := expected.(string)
+		if !ok {
+			return false
+		}
+		if strings.Contains(expectedStr, "/") {
+			_, subnet, err := net.ParseCIDR(expectedStr)
+			if err != nil {
+				return false // Fail securely on parse error
+			}
+			ip := net.ParseIP(actual)
+			if ip == nil {
+				return false
+			}
+			return !subnet.Contains(ip)
+		}
+		return expectedStr != actual
+	case "NumericEquals", "NumericNotEquals", "NumericLessThan", "NumericLessThanEquals", "NumericGreaterThan", "NumericGreaterThanEquals":
+		expectedNum, err := strconv.ParseFloat(fmt.Sprintf("%v", expected), 64)
+		if err != nil {
+			return false
+		}
+		actualNum, err := strconv.ParseFloat(actual, 64)
+		if err != nil {
+			return false
+		}
+		switch operator {
+		case "NumericEquals": return actualNum == expectedNum
+		case "NumericNotEquals": return actualNum != expectedNum
+		case "NumericLessThan": return actualNum < expectedNum
+		case "NumericLessThanEquals": return actualNum <= expectedNum
+		case "NumericGreaterThan": return actualNum > expectedNum
+		case "NumericGreaterThanEquals": return actualNum >= expectedNum
+		}
+	case "Bool":
+		expectedBool, err := strconv.ParseBool(fmt.Sprintf("%v", expected))
+		if err != nil {
+			return false
+		}
+		actualBool, err := strconv.ParseBool(actual)
+		if err != nil {
+			return false
+		}
+		return expectedBool == actualBool
+	}
+
+	// If the operator isn't supported, deny by default
+	return false
 }
 
 func (q *policyQueries) extractStringArray(field interface{}) []string {
@@ -882,9 +1028,37 @@ func (q *policyQueries) matchesPattern(patterns []string, value string) bool {
 		if pattern == "*" || pattern == value {
 			return true
 		}
-		// TODO: Add wildcard matching
+		// Wildcard matching support
+		if strings.Contains(pattern, "*") {
+			if q.globMatch(pattern, value) {
+				return true
+			}
+		}
 	}
 	return false
+}
+
+// globMatch implements simple wildcard matching where * matches 0 or more characters
+func (q *policyQueries) globMatch(pattern, value string) bool {
+	parts := strings.Split(pattern, "*")
+	if len(parts) == 1 {
+		return pattern == value
+	}
+
+	if !strings.HasPrefix(value, parts[0]) {
+		return false
+	}
+
+	currentValue := value[len(parts[0]):]
+	for i := 1; i < len(parts)-1; i++ {
+		idx := strings.Index(currentValue, parts[i])
+		if idx == -1 {
+			return false
+		}
+		currentValue = currentValue[idx+len(parts[i]):]
+	}
+
+	return strings.HasSuffix(currentValue, parts[len(parts)-1])
 }
 
 func (q *policyQueries) GetPrincipalPolicies(principalID, principalType, organizationID string) ([]*models.Policy, error) {
