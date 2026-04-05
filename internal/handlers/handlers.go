@@ -28,7 +28,7 @@ type GroupHandler struct {
 }
 
 func NewGroupHandler(db *database.DB, redis *redis.Client, logger *logger.Logger) *GroupHandler {
-	return &GroupHandler{db: db, redis: redis, logger: logger, queries: queries.New(db, redis, logger)}
+	return &GroupHandler{db: db, redis: redis, logger: logger, queries: queries.New(db, redis)}
 }
 
 // ListGroups lists groups with optional filtering by organization
@@ -409,7 +409,7 @@ type ResourceHandler struct {
 }
 
 func NewResourceHandler(db *database.DB, redis *redis.Client, logger *logger.Logger) *ResourceHandler {
-	return &ResourceHandler{db: db, redis: redis, logger: logger, queries: queries.New(db, redis, logger)}
+	return &ResourceHandler{db: db, redis: redis, logger: logger, queries: queries.New(db, redis)}
 }
 
 // ListResources lists resources
@@ -940,7 +940,7 @@ func NewPolicyHandler(db *database.DB, redis *redis.Client, logger *logger.Logge
 		db:      db,
 		redis:   redis,
 		logger:  logger,
-		queries: queries.New(db, redis, logger),
+		queries: queries.New(db, redis),
 		audit:   audit,
 		authz:   authz,
 	}
@@ -1803,7 +1803,7 @@ func NewRoleHandler(db *database.DB, redis *redis.Client, logger *logger.Logger)
 		db:      db,
 		redis:   redis,
 		logger:  logger,
-		queries: queries.New(db, redis, logger),
+		queries: queries.New(db, redis),
 	}
 }
 
@@ -2579,7 +2579,7 @@ func NewSessionHandler(db *database.DB, redis *redis.Client, logger *logger.Logg
 		db:      db,
 		redis:   redis,
 		logger:  logger,
-		queries: queries.New(db, redis, logger),
+		queries: queries.New(db, redis),
 	}
 }
 

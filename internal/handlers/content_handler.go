@@ -24,7 +24,7 @@ type ContentHandler struct {
 }
 
 func NewContentHandler(db *database.DB, redis *redis.Client, logger *logger.Logger) *ContentHandler {
-	return &ContentHandler{db: db, redis: redis, logger: logger, queries: queries.New(db, redis, logger)}
+	return &ContentHandler{db: db, redis: redis, logger: logger, queries: queries.New(db, redis)}
 }
 
 // ── Helper: per-item authorization ─────────────────────────────────────

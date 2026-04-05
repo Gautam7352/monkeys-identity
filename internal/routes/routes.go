@@ -72,7 +72,7 @@ func SetupRoutes(
 	tenantMw := middleware.NewTenantMiddleware(systemOrgID)
 
 	// Initialize queries
-	q := queries.New(db, redis, logger)
+	q := queries.New(db, redis)
 
 	// Initialize services
 	authzSvc := services.NewAuthzService(q)
@@ -95,7 +95,7 @@ func SetupRoutes(
 	contentHandler := handlers.NewContentHandler(db, redis, logger)
 
 	// Create queries instance for audit handler
-	auditQueries := queries.New(db, redis, logger)
+	auditQueries := queries.New(db, redis)
 	auditHandler := handlers.NewAuditHandler(auditQueries, logger, auditService)
 
 	// Global API Rate Limiting
