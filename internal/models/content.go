@@ -15,8 +15,8 @@ type ContentItem struct {
 	ParentID       *string    `json:"parent_id,omitempty" db:"parent_id"` // nullable — for comments / threads
 	OwnerID        string     `json:"owner_id" db:"owner_id"`
 	OrganizationID string     `json:"organization_id" db:"organization_id"`
-	Status         string     `json:"status" db:"status"` // draft, published, archived, private, hidden
-	Tags           string     `json:"tags" db:"tags"`     // JSONB
+	Status         string     `json:"status" db:"status"`     // draft, published, archived, private, hidden
+	Tags           string     `json:"tags" db:"tags"`         // JSONB
 	Metadata       string     `json:"metadata" db:"metadata"` // JSONB — type-specific data
 	PublishedAt    *time.Time `json:"published_at" db:"published_at"`
 	CreatedAt      time.Time  `json:"created_at" db:"created_at"`

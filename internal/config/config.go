@@ -98,6 +98,7 @@ func Load() *Config {
 
 	return cfg
 }
+
 // requireEnv reads a mandatory environment variable and panics if unset/empty.
 func requireEnv(key string) string {
 	if value := os.Getenv(key); value != "" {

@@ -31,8 +31,8 @@ type DynamicCORS struct {
 	allowAll      bool            // true when static list contains "*"
 
 	// In-memory fallback when Redis is temporarily unreachable.
-	mu          sync.RWMutex
-	memoryCache map[string]bool
+	mu            sync.RWMutex
+	memoryCache   map[string]bool
 	memoryCacheAt time.Time
 }
 

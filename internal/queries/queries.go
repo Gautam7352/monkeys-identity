@@ -6,6 +6,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/the-monkeys/monkeys-identity/internal/database"
+	"github.com/the-monkeys/monkeys-identity/pkg/logger"
 )
 
 // Queries holds all query interfaces
@@ -24,10 +25,11 @@ type Queries struct {
 	Content        ContentQueries
 	db             *database.DB
 	redis          *redis.Client
+	logger         *logger.Logger
 }
 
 // New creates a new Queries instance with all query implementations
-func New(db *database.DB, redis *redis.Client) *Queries {
+func New(db *database.DB, redis *redis.Client, logger *logger.Logger) *Queries {
 	return &Queries{
 		Auth:           NewAuthQueries(db, redis),
 		User:           NewUserQueries(db, redis),
@@ -36,13 +38,14 @@ func New(db *database.DB, redis *redis.Client) *Queries {
 		Resource:       NewResourceQueries(db, redis),
 		Policy:         NewPolicyQueries(db, redis),
 		Role:           NewRoleQueries(db, redis),
-		Session:        NewSessionQueries(db, redis),
+		Session:        NewSessionQueries(db, redis, logger),
 		Audit:          NewAuditQueries(db, redis),
 		GlobalSettings: NewGlobalSettingsQueries(db, redis),
 		OIDC:           NewOIDCQueries(db, redis),
 		Content:        NewContentQueries(db, redis),
 		db:             db,
 		redis:          redis,
+		logger:         logger,
 	}
 }
 
@@ -63,6 +66,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		Content:        q.Content.WithTx(tx),
 		db:             q.db,
 		redis:          q.redis,
+		logger:         q.logger,
 	}
 }
 
@@ -83,6 +87,7 @@ func (q *Queries) WithContext(ctx context.Context) *Queries {
 		Content:        q.Content.WithContext(ctx),
 		db:             q.db,
 		redis:          q.redis,
+		logger:         q.logger,
 	}
 }
 
