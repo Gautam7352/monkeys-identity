@@ -23,19 +23,21 @@ type AuditService interface {
 }
 
 type auditService struct {
-	queries queries.AuditQueries
-	logger  *logger.Logger
-	events  chan models.AuditEvent
-	done    chan struct{}
+	queries        queries.AuditQueries
+	webhookService WebhookService
+	logger         *logger.Logger
+	events         chan models.AuditEvent
+	done           chan struct{}
 }
 
 // NewAuditService creates a new instance of AuditService
-func NewAuditService(q queries.AuditQueries, l *logger.Logger) AuditService {
+func NewAuditService(q queries.AuditQueries, ws WebhookService, l *logger.Logger) AuditService {
 	return &auditService{
-		queries: q,
-		logger:  l,
-		events:  make(chan models.AuditEvent, 1000), // Buffered channel for async logging
-		done:    make(chan struct{}),
+		queries:        q,
+		webhookService: ws,
+		logger:         l,
+		events:         make(chan models.AuditEvent, 1000), // Buffered channel for async logging
+		done:           make(chan struct{}),
 	}
 }
 
@@ -48,6 +50,18 @@ func (s *auditService) Start(ctx context.Context) {
 			case event := <-s.events:
 				if err := s.queries.LogAuditEvent(event); err != nil {
 					s.logger.Error("Failed to log audit event [%s]: %v", event.Action, err)
+				}
+
+				// Dispatch webhook event
+				if s.webhookService != nil {
+					webhookEvent := models.WebhookEvent{
+						ID:             uuid.New().String(),
+						EventType:      fmt.Sprintf("audit.%s", event.Action),
+						OrganizationID: event.OrganizationID,
+						CreatedAt:      time.Now(),
+						Data:           event,
+					}
+					s.webhookService.DispatchEvent(context.Background(), webhookEvent)
 				}
 			case <-ctx.Done():
 				s.logger.Info("Audit worker stopping...")

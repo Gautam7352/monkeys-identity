@@ -23,6 +23,7 @@ type Queries struct {
 	GlobalSettings GlobalSettingsQueries
 	OIDC           OIDCQueries
 	Content        ContentQueries
+	Webhooks       WebhookQueries
 	db             *database.DB
 	redis          *redis.Client
 	logger         *logger.Logger
@@ -43,6 +44,7 @@ func New(db *database.DB, redis *redis.Client, logger *logger.Logger) *Queries {
 		GlobalSettings: NewGlobalSettingsQueries(db, redis, logger),
 		OIDC:           NewOIDCQueries(db, redis, logger),
 		Content:        NewContentQueries(db, redis, logger),
+		Webhooks:       NewWebhookQueries(db, redis, logger),
 		db:             db,
 		redis:          redis,
 		logger:         logger,
@@ -64,6 +66,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		GlobalSettings: q.GlobalSettings.WithTx(tx),
 		OIDC:           q.OIDC.WithTx(tx),
 		Content:        q.Content.WithTx(tx),
+		Webhooks:       q.Webhooks.WithTx(tx),
 		db:             q.db,
 		redis:          q.redis,
 		logger:         q.logger,
@@ -85,6 +88,7 @@ func (q *Queries) WithContext(ctx context.Context) *Queries {
 		GlobalSettings: q.GlobalSettings.WithContext(ctx),
 		OIDC:           q.OIDC.WithContext(ctx),
 		Content:        q.Content.WithContext(ctx),
+		Webhooks:       q.Webhooks.WithContext(ctx),
 		db:             q.db,
 		redis:          q.redis,
 		logger:         q.logger,

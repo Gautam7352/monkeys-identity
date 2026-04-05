@@ -29,6 +29,7 @@ func SetupRoutes(
 	cfg *config.Config,
 	auditService services.AuditService,
 	mfaService services.MFAService,
+	webhookService services.WebhookService,
 	dynamicCORS *middleware.DynamicCORS,
 ) {
 	// Ensure we have a valid JWT private key for RS256 signing
@@ -81,6 +82,7 @@ func SetupRoutes(
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(q, redis, logger, cfg, auditService, mfaService, emailSvc)
+	webhookHandler := handlers.NewWebhookHandler(q.Webhooks, logger)
 	authHandler.SetCORS(dynamicCORS)
 	userHandler := handlers.NewUserHandler(q, logger, auditService)
 	organizationHandler := handlers.NewOrganizationHandler(db, redis, logger)
@@ -159,6 +161,14 @@ func SetupRoutes(
 
 	// Protected routes (authentication + tenant resolution required)
 	protected := api.Group("/", authMiddleware.RequireAuth(), tenantMw.ResolveTenant())
+
+	// Webhooks
+	webhooks := protected.Group("/webhooks")
+	webhooks.Post("/", webhookHandler.CreateEndpoint)
+	webhooks.Get("/", webhookHandler.ListEndpoints)
+	webhooks.Get("/:id", webhookHandler.GetEndpoint)
+	webhooks.Put("/:id", webhookHandler.UpdateEndpoint)
+	webhooks.Delete("/:id", webhookHandler.DeleteEndpoint)
 
 	// User management routes
 	users := protected.Group("/users")

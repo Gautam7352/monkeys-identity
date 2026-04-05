@@ -125,14 +125,17 @@ func main() {
 
 	// Initialize services
 	auditQueries := queries.New(db, redis, appLogger).Audit
-	auditService := services.NewAuditService(auditQueries, appLogger)
+	webhookQueries := queries.NewWebhookQueries(db.DB, redis, appLogger)
+	webhookService := services.NewWebhookService(webhookQueries, appLogger)
+
+	auditService := services.NewAuditService(auditQueries, webhookService, appLogger)
 	auditService.Start(context.Background())
 	defer auditService.Stop()
 
 	mfaService := services.NewMFAService(appLogger)
 
 	// Initialize routes
-	routes.SetupRoutes(app, v1, db, redis, appLogger, cfg, auditService, mfaService, dynamicCORS)
+	routes.SetupRoutes(app, v1, db, redis, appLogger, cfg, auditService, mfaService, webhookService, dynamicCORS)
 
 	// Function to open browser
 	openBrowser := func(url string) {
